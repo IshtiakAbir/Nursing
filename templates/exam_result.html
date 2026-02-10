@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+
+{% block title %}Exam Result - Premier Medical And Technical Institute{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div style="margin-bottom: 2rem;">
+        <a href="{% url 'exam_detail' attempt.exam.id %}" style="color: #3b82f6; text-decoration: none;">← Back to
+            Exam</a>
+    </div>
+
+    <!-- Result Summary -->
+    <div class="card"
+        style="{% if attempt.passed %}background: linear-gradient(135deg, #10b981, #059669);{% else %}background: linear-gradient(135deg, #ef4444, #dc2626);{% endif %} color: white; text-align: center; padding: 3rem; margin-bottom: 2rem;">
+        <div style="font-size: 5rem; margin-bottom: 1rem;">
+            {% if attempt.passed %}✓{% else %}✗{% endif %}
+        </div>
+        <h1 style="margin-bottom: 0.5rem; color: white;">
+            {% if attempt.passed %}Congratulations! You Passed!{% else %}Not Passed{% endif %}
+        </h1>
+        <p style="font-size: 1.5rem; opacity: 0.9; margin-bottom: 2rem;">{{ attempt.percentage }}%</p>
+        <div style="display: flex; justify-content: center; gap: 2rem; font-size: 1.125rem;">
+            <div>
+                <strong>Score:</strong> {{ attempt.score }}/{{ attempt.total_marks }}
+            </div>
+            <div>
+                <strong>Passing Score:</strong> {{ attempt.exam.passing_score }}%
+            </div>
+        </div>
+    </div>
+
+    <!-- Exam Information -->
+    <div class="card" style="margin-bottom: 2rem;">
+        <h2 style="color: #1e3a8a; margin-bottom: 1rem;">{{ attempt.exam.title }}</h2>
+        <div class="grid grid-3">
+            <div>
+                <p style="color: #64748b;">Completed On</p>
+                <p style="font-weight: 600;">{{ attempt.completed_at|date:"F d, Y - h:i A" }}</p>
+            </div>
+            <div>
+                <p style="color: #64748b;">Total Questions</p>
+                <p style="font-weight: 600;">{{ answers.count }}</p>
+            </div>
+            <div>
+                <p style="color: #64748b;">Correct Answers</p>
+                <p style="font-weight: 600;">{{ answers|length|add:"-"|add:answers.count }} / {{ answers.count }}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detailed Answers -->
+    <h2 style="color: #1e3a8a; margin-bottom: 1rem;">Detailed Review</h2>
+    {% for answer in answers %}
+    <div class="card"
+        style="{% if answer.is_correct %}border-left: 4px solid #10b981;{% else %}border-left: 4px solid #ef4444;{% endif %}">
+        <div style="display: flex; justify-content: between; align-items: start; margin-bottom: 1rem;">
+            <h3 style="color: #1e3a8a; flex: 1;">Question {{ forloop.counter }}</h3>
+            {% if answer.is_correct %}
+            <span class="badge badge-success">Correct</span>
+            {% else %}
+            <span class="badge badge-danger">Incorrect</span>
+            {% endif %}
+        </div>
+
+        <p style="font-size: 1.125rem; margin-bottom: 1.5rem; line-height: 1.6;">{{ answer.question.question_text }}</p>
+
+        <div style="background: #f8fafc; padding: 1.5rem; border-radius: 0.5rem; margin-bottom: 1rem;">
+            <div style="margin-bottom: 1rem;">
+                <strong style="color: #1e3a8a;">Your Answer:</strong>
+                <span
+                    style="{% if answer.is_correct %}color: #10b981;{% else %}color: #ef4444;{% endif %} font-weight: 600;">
+                    {{ answer.selected_answer }}.
+                    {% if answer.selected_answer == 'A' %}{{ answer.question.option_a }}
+                    {% elif answer.selected_answer == 'B' %}{{ answer.question.option_b }}
+                    {% elif answer.selected_answer == 'C' %}{{ answer.question.option_c }}
+                    {% else %}{{ answer.question.option_d }}
+                    {% endif %}
+                </span>
+            </div>
+
+            {% if not answer.is_correct %}
+            <div>
+                <strong style="color: #10b981;">Correct Answer:</strong>
+                <span style="color: #10b981; font-weight: 600;">
+                    {{ answer.question.correct_answer }}.
+                    {% if answer.question.correct_answer == 'A' %}{{ answer.question.option_a }}
+                    {% elif answer.question.correct_answer == 'B' %}{{ answer.question.option_b }}
+                    {% elif answer.question.correct_answer == 'C' %}{{ answer.question.option_c }}
+                    {% else %}{{ answer.question.option_d }}
+                    {% endif %}
+                </span>
+            </div>
+            {% endif %}
+        </div>
+
+        {% if answer.question.explanation %}
+        <div style="background: #dbeafe; padding: 1rem; border-radius: 0.5rem; border-left: 4px solid #3b82f6;">
+            <strong style="color: #1e40af;">Explanation:</strong>
+            <p style="color: #1e40af; margin-top: 0.5rem;">{{ answer.question.explanation }}</p>
+        </div>
+        {% endif %}
+    </div>
+    {% endfor %}
+
+    <!-- Actions -->
+    <div class="card" style="text-align: center; background: #f8fafc;">
+        <div style="display: flex; gap: 1rem; justify-content: center;">
+            <a href="{% url 'course_detail' attempt.exam.course.id %}" class="btn btn-primary-solid">Back to Course</a>
+            <a href="{% url 'dashboard' %}" class="btn btn-outline">Go to Dashboard</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+
+
+{% block title %}Login - Premier Medical And Technical Institute{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div style="max-width: 500px; margin: 2rem auto;">
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title" style="text-align: center;">Student Login</h2>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+
+                    <div class="form-group">
+                        <label class="form-label">Username</label>
+                        {{ form.username }}
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Password</label>
+                        {{ form.password }}
+                    </div>
+
+                    {% if form.errors %}
+                    <div style="color: #ef4444; margin-bottom: 1rem;">
+                        Please correct the errors above.
+                    </div>
+                    {% endif %}
+
+                    <button type="submit" class="btn btn-primary-solid"
+                        style="width: 100%; margin-top: 1rem;">Login</button>
+                </form>
+
+                <div
+                    style="text-align: center; margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid #e2e8f0;">
+                    <p>Don't have an account? <a href="{% url 'register' %}"
+                            style="color: #3b82f6; font-weight: 600;">Register here</a></p>
+                </div>
+
+                <!-- Google Sign-In Section -->
+
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

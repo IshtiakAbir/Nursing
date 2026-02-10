@@ -1,0 +1,121 @@
+{% extends 'base.html' %}
+
+{% block title %}Taking {{ exam.title }} - Premier Medical And Technical Institute{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="card" style="background: linear-gradient(135deg, #1e3a8a, #3b82f6); color: white; margin-bottom: 2rem;">
+        <h1 style="margin-bottom: 0.5rem; color: white;">{{ exam.title }}</h1>
+        <p style="opacity: 0.9;">Duration: {{ exam.duration_minutes }} minutes | Total Marks: {{ exam.total_marks }}</p>
+    </div>
+
+    <div
+        style="background: #fef3c7; padding: 1rem; border-radius: 0.5rem; border-left: 4px solid #f59e0b; margin-bottom: 2rem;">
+        <p style="color: #92400e;"><strong>⏰ Time Remaining:</strong> <span id="timer">{{ exam.duration_minutes
+                }}:00</span></p>
+    </div>
+
+    <form method="post" id="examForm">
+        {% csrf_token %}
+
+        {% for question in questions %}
+        <div class="card" style="margin-bottom: 1.5rem;">
+            <h3 style="color: #1e3a8a; margin-bottom: 1rem;">Question {{ forloop.counter }}</h3>
+            <p style="font-size: 1.125rem; margin-bottom: 1.5rem; line-height: 1.6;">{{ question.question_text }}</p>
+
+            <div style="display: flex; flex-direction: column; gap: 1rem;">
+                <label
+                    style="display: flex; align-items: start; padding: 1rem; background: #f8fafc; border-radius: 0.5rem; cursor: pointer; transition: all 0.15s;">
+                    <input type="radio" name="question_{{ question.id }}" value="A" required
+                        style="margin-top: 0.25rem; margin-right: 0.75rem;">
+                    <span><strong>A.</strong> {{ question.option_a }}</span>
+                </label>
+
+                <label
+                    style="display: flex; align-items: start; padding: 1rem; background: #f8fafc; border-radius: 0.5rem; cursor: pointer; transition: all 0.15s;">
+                    <input type="radio" name="question_{{ question.id }}" value="B" required
+                        style="margin-top: 0.25rem; margin-right: 0.75rem;">
+                    <span><strong>B.</strong> {{ question.option_b }}</span>
+                </label>
+
+                <label
+                    style="display: flex; align-items: start; padding: 1rem; background: #f8fafc; border-radius: 0.5rem; cursor: pointer; transition: all 0.15s;">
+                    <input type="radio" name="question_{{ question.id }}" value="C" required
+                        style="margin-top: 0.25rem; margin-right: 0.75rem;">
+                    <span><strong>C.</strong> {{ question.option_c }}</span>
+                </label>
+
+                <label
+                    style="display: flex; align-items: start; padding: 1rem; background: #f8fafc; border-radius: 0.5rem; cursor: pointer; transition: all 0.15s;">
+                    <input type="radio" name="question_{{ question.id }}" value="D" required
+                        style="margin-top: 0.25rem; margin-right: 0.75rem;">
+                    <span><strong>D.</strong> {{ question.option_d }}</span>
+                </label>
+            </div>
+        </div>
+        {% endfor %}
+
+        <div class="card" style="text-align: center; background: #f8fafc;">
+            <p style="margin-bottom: 1rem; color: #64748b;">Make sure you have answered all questions before submitting.
+            </p>
+            <button type="submit" class="btn btn-success" style="font-size: 1.125rem; padding: 1rem 3rem;"
+                onclick="return confirm('Are you sure you want to submit? You cannot change your answers after submission.');">Submit
+                Exam</button>
+        </div>
+    </form>
+</div>
+
+<script>
+    // Timer functionality
+    let duration = {{ exam.duration_minutes }} * 60; // Convert to seconds
+    const timerElement = document.getElementById('timer');
+    const examForm = document.getElementById('examForm');
+
+    function updateTimer() {
+        const minutes = Math.floor(duration / 60);
+        const seconds = duration % 60;
+        timerElement.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+
+        if (duration <= 0) {
+            alert('Time is up! The exam will be submitted automatically.');
+            examForm.submit();
+        }
+
+        duration--;
+    }
+
+    // Update timer every second
+    setInterval(updateTimer, 1000);
+
+    // Add hover effect to radio options
+    document.querySelectorAll('label').forEach(label => {
+        label.addEventListener('mouseenter', function () {
+            this.style.background = '#e0e7ff';
+            this.style.borderLeft = '4px solid #3b82f6';
+        });
+
+        label.addEventListener('mouseleave', function () {
+            if (!this.querySelector('input').checked) {
+                this.style.background = '#f8fafc';
+                this.style.borderLeft = 'none';
+            }
+        });
+    });
+
+    // Highlight selected option
+    document.querySelectorAll('input[type="radio"]').forEach(radio => {
+        radio.addEventListener('change', function () {
+            // Remove highlight from all options in this question
+            const questionName = this.name;
+            document.querySelectorAll(`input[name="${questionName}"]`).forEach(r => {
+                r.parentElement.style.background = '#f8fafc';
+                r.parentElement.style.borderLeft = 'none';
+            });
+
+            // Highlight selected option
+            this.parentElement.style.background = '#dbeafe';
+            this.parentElement.style.borderLeft = '4px solid #3b82f6';
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Environment files
+.env
+.env.*
+.env.example
+
+# Django
+db.sqlite3
+staticfiles/
+
+# Virtual environments / package folders
+venv/
+pip/
+pip
+
+# Media (uploaded files – usually not pushed)
+media/
+
+# OS / Editor
+.DS_Store
+Thumbs.db

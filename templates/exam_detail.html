@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ exam.title }} - Premier Medical And Technical Institute{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div style="margin-bottom: 2rem;">
+        <a href="{% url 'course_detail' exam.course.id %}" style="color: #3b82f6; text-decoration: none;">← Back to
+            Course</a>
+    </div>
+
+    <div class="card" style="background: linear-gradient(135deg, #1e3a8a, #3b82f6); color: white; margin-bottom: 2rem;">
+        <h1 style="margin-bottom: 0.5rem; color: white;">
+            {{ exam.title }}
+            {% if exam.is_final %}
+            <span class="badge" style="background: #ef4444; color: white;">Final Exam</span>
+            {% endif %}
+        </h1>
+        <p style="opacity: 0.9;">{{ exam.course.title }}</p>
+    </div>
+
+    <div class="grid grid-2">
+        <!-- Exam Information -->
+        <div>
+            <div class="card">
+                <h2 style="color: #1e3a8a; margin-bottom: 1rem;">Exam Information</h2>
+                <p style="margin-bottom: 1rem;">{{ exam.description }}</p>
+
+                <div style="background: #f8fafc; padding: 1.5rem; border-radius: 0.5rem; margin-bottom: 1rem;">
+                    <h3 style="color: #1e3a8a; margin-bottom: 1rem;">Details</h3>
+                    <p><strong>Duration:</strong> {{ exam.duration_minutes }} minutes</p>
+                    <p><strong>Total Marks:</strong> {{ exam.total_marks }}</p>
+                    <p><strong>Passing Score:</strong> {{ exam.passing_score }}%</p>
+                    <p><strong>Total Questions:</strong> {{ exam.get_questions_count }}</p>
+                </div>
+
+                <div
+                    style="background: #fef3c7; padding: 1.5rem; border-radius: 0.5rem; border-left: 4px solid #f59e0b;">
+                    <h4 style="color: #92400e; margin-bottom: 0.5rem;">⚠️ Important Instructions</h4>
+                    <ul style="color: #92400e; margin-left: 1.5rem;">
+                        <li>Read each question carefully before answering</li>
+                        <li>You must answer all questions</li>
+                        <li>Once submitted, you cannot change your answers</li>
+                        <li>Make sure you have a stable internet connection</li>
+                        <li>Complete the exam within the time limit</li>
+                    </ul>
+                </div>
+
+                <a href="{% url 'take_exam' exam.id %}" class="btn btn-success"
+                    style="width: 100%; margin-top: 1.5rem; font-size: 1.125rem; padding: 1rem;">Start Exam</a>
+            </div>
+        </div>
+
+        <!-- Previous Attempts -->
+        <div>
+            <div class="card">
+                <h2 style="color: #1e3a8a; margin-bottom: 1rem;">Previous Attempts</h2>
+                {% if previous_attempts %}
+                {% for attempt in previous_attempts %}
+                <div style="background: #f8fafc; padding: 1rem; border-radius: 0.5rem; margin-bottom: 1rem;">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                        <strong>Attempt {{ forloop.counter }}</strong>
+                        {% if attempt.passed %}
+                        <span class="badge badge-success">Passed</span>
+                        {% else %}
+                        <span class="badge badge-danger">Failed</span>
+                        {% endif %}
+                    </div>
+                    <p style="color: #64748b; font-size: 0.875rem;">{{ attempt.completed_at|date:"F d, Y - h:i A" }}</p>
+                    <div style="margin-top: 0.5rem;">
+                        <p><strong>Score:</strong> {{ attempt.score }}/{{ attempt.total_marks }} ({{ attempt.percentage
+                            }}%)</p>
+                    </div>
+                    <a href="{% url 'exam_result' attempt.id %}" class="btn btn-outline"
+                        style="margin-top: 0.5rem; width: 100%;">View Details</a>
+                </div>
+                {% endfor %}
+                {% else %}
+                <p style="text-align: center; color: #64748b; padding: 2rem;">You haven't attempted this exam yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,237 @@
+﻿{% extends 'base.html' %}
+
+{% block title %}Home - Premier Medical And Technical
+Institute{% endblock %}
+
+{% block extra_css %}
+<style>
+    .hero {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 80vh;
+        min-height: 600px;
+        position: relative;
+    }
+
+    @media (max-width: 768px) {
+        .hero {
+            min-height: 50vh;
+            min-height: 400px;
+            padding: 4rem 0 !important;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- NCC_VERSION_1.1 -->
+<!-- Full Width Hero Section -->
+<section class="hero"
+    style="text-align: center; {% if site_config and site_config.hero_background %}background: linear-gradient(rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.45)), url('{{ site_config.hero_background.url }}'); background-size: cover; background-position: center; background-attachment: fixed;{% else %}background: linear-gradient(135deg, #1e3a8a, #3b82f6);{% endif %} color: white; width: 100%; margin: 0; border-radius: 0;">
+    <div class="container">
+        {% if not user.is_authenticated %}
+        <div style="display: flex; gap: 1.5rem; justify-content: center;">
+            <a href="{% url 'register' %}" class="btn btn-success"
+                style="font-size: 1.25rem; padding: 1.25rem 3rem; font-weight: 700; border-radius: 50px; box-shadow: 0 10px 20px rgba(16, 185, 129, 0.3);">Get
+                Started</a>
+            <a href="{% url 'login' %}" class="btn btn-outline"
+                style="font-size: 1.25rem; padding: 1.25rem 3rem; background: rgba(255,255,255,0.1); color: white; border: 2px solid white; font-weight: 700; border-radius: 50px; backdrop-filter: blur(10px);">Login</a>
+        </div>
+        {% else %}
+        <a href="{% url 'dashboard' %}" class="btn btn-success"
+            style="font-size: 1.25rem; padding: 1.25rem 3rem; font-weight: 700; border-radius: 50px; box-shadow: 0 10px 20px rgba(16, 185, 129, 0.3);">Go
+            to Dashboard</a>
+        {% endif %}
+    </div>
+</section>
+
+
+
+<!-- Courses Section -->
+<section class="courses-section" style="padding: 8rem 0; background: #f1f5f9;">
+    <div class="container">
+        <h2 style="text-align: center; font-size: 3.5rem; margin-bottom: 5rem; color: #1e3a8a; font-weight: 900;">
+            Featured Training Courses</h2>
+        {% if active_courses %}
+        <div class="grid grid-3">
+            {% for course in active_courses %}
+            <div class="card"
+                style="display: flex; flex-direction: column; height: 100%; padding: 0; overflow: hidden; border-radius: 2rem; border: none; box-shadow: 0 20px 40px rgba(0,0,0,0.08); background: white;">
+                {% if course.thumbnail %}
+                <div style="width: 100%; height: 280px; overflow: hidden;">
+                    <img src="{{ course.thumbnail.url }}" alt="{{ course.name }}"
+                        style="width: 100%; height: 100%; object-fit: contain !important; background: #f8f9fa;">
+                </div>
+                {% endif %}
+
+                <div
+                    style="padding: 3rem; flex: 1; display: flex; flex-direction: column; justify-content: space-between;">
+                    <div>
+                        <h3
+                            style="color: #1e3a8a; margin-bottom: 1.5rem; font-size: 1.75rem; font-weight: 900; line-height: 1.3;">
+                            {{ course.name }}
+                        </h3>
+                        <p
+                            style="color: #64748b; font-weight: 700; margin-bottom: 2.5rem; font-size: 1.1rem; display: flex; align-items: center; gap: 12px; background: #f8fafc; padding: 10px 15px; border-radius: 12px; width: fit-content;">
+                            Duration: {{ course.duration }}
+                        </p>
+                    </div>
+                    <a href="{% url 'course_detail' course.id %}" class="btn btn-primary-solid"
+                        style="width: 100%; text-align: center; display: block; padding: 1.25rem; border-radius: 15px; font-weight: 800;">View
+                        Details</a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        <div style="text-align: center; margin-top: 4rem;">
+            <a href="{% url 'all_courses' %}" class="btn btn-outline"
+                style="padding: 1rem 3rem; font-size: 1.1rem; border-radius: 50px; font-weight: 700; border-width: 2px;">
+                More Training Courses &rarr;
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="features-section" style="padding: 8rem 0; background: white;">
+    <div class="container">
+        <h2 style="text-align: center; font-size: 3rem; margin-bottom: 5rem; color: #1e3a8a; font-weight: 800;">Why
+            Choose Us?</h2>
+        <div class="grid grid-3">
+            <div class="card"
+                style="border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.03); padding: 3rem; background: #f8fafc; border-radius: 2rem; transition: transform 0.3s ease;">
+                <div style="font-size: 4rem; margin-bottom: 2rem;">🔬</div>
+                <h3 style="color: #1e3a8a; margin-bottom: 1.5rem; font-size: 1.75rem; font-weight: 800;">Modern Labs
+                </h3>
+                <p style="color: #64748b; font-size: 1.15rem; line-height: 1.8;">Train with the latest medical equipment
+                    and simulation technology in our modern laboratories.</p>
+            </div>
+            <div class="card"
+                style="border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.03); padding: 3rem; background: #f8fafc; border-radius: 2rem; transition: transform 0.3s ease;">
+                <div style="font-size: 4rem; margin-bottom: 2rem;">📜</div>
+                <h3 style="color: #1e3a8a; margin-bottom: 1.5rem; font-size: 1.75rem; font-weight: 800;">Professional
+                    Certificate
+                </h3>
+                <p style="color: #64748b; font-size: 1.15rem; line-height: 1.8;">Earn a fully accredited and
+                    industry-recognized qualification upon completion, validating your skills for immediate employment.
+                </p>
+            </div>
+            <div class="card"
+                style="border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.03); padding: 3rem; background: #f8fafc; border-radius: 2rem; transition: transform 0.3s ease;">
+                <div style="font-size: 4rem; margin-bottom: 2rem;">🤝</div>
+                <h3 style="color: #1e3a8a; margin-bottom: 1.5rem; font-size: 1.75rem; font-weight: 800;">Individual
+                    Consultancy
+                </h3>
+                <p style="color: #64748b; font-size: 1.15rem; line-height: 1.8;">One-on-one academic counseling and
+                    personalized career guidance to help navigate your path in the healthcare industry.</p>
+            </div>
+            <div class="card"
+                style="border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.03); padding: 3rem; background: #f8fafc; border-radius: 2rem; transition: transform 0.3s ease;">
+                <div style="font-size: 4rem; margin-bottom: 2rem;">📖</div>
+                <h3 style="color: #1e3a8a; margin-bottom: 1.5rem; font-size: 1.75rem; font-weight: 800;">Comprehensive
+                    Curriculum</h3>
+                <p style="color: #64748b; font-size: 1.15rem; line-height: 1.8;">Well-structured courses with modules,
+                    resources, and assessments designed for nursing professionals.</p>
+            </div>
+            <div class="card"
+                style="border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.03); padding: 3rem; background: #f8fafc; border-radius: 2rem; transition: transform 0.3s ease;">
+                <div style="font-size: 4rem; margin-bottom: 2rem;">🎓</div>
+                <h3 style="color: #1e3a8a; margin-bottom: 1.5rem; font-size: 1.75rem; font-weight: 800;">Expert Faculty
+                </h3>
+                <p style="color: #64748b; font-size: 1.15rem; line-height: 1.8;">Learn from experienced nursing
+                    professionals and healthcare experts.</p>
+            </div>
+            <div class="card"
+                style="border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.03); padding: 3rem; background: #f8fafc; border-radius: 2rem; transition: transform 0.3s ease;">
+                <div style="font-size: 4rem; margin-bottom: 2rem;">💼</div>
+                <h3 style="color: #1e3a8a; margin-bottom: 1.5rem; font-size: 1.75rem; font-weight: 800;">Career Support
+                </h3>
+                <p style="color: #64748b; font-size: 1.15rem; line-height: 1.8;">Comprehensive learning materials and
+                    dedicated career guidance to ensure your professional success.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% if not user.is_authenticated %}
+<section class="branches-section" style="padding: 8rem 0; background: white;">
+    <div class="container">
+        <h2 style="text-align: center; font-size: 3.5rem; margin-bottom: 5rem; color: #1e3a8a; font-weight: 900;">Our
+            Branches</h2>
+        {% if branches %}
+        <div class="grid grid-3">
+            {% for branch in branches %}
+            <div class="card"
+                style="padding: 0; border-radius: 2.5rem; border: none; box-shadow: 0 30px 60px rgba(0,0,0,0.06); overflow: hidden; height: 100%; display: flex; flex-direction: column; background: white;">
+                <div style="width: 100%; height: 300px; overflow: hidden;">
+                    {% if branch.image %}
+                    <img src="{{ branch.image.url }}" alt="{{ branch.name }}"
+                        style="width: 100%; height: 100%; object-fit: cover;">
+                    {% else %}
+                    <div
+                        style="width: 100%; height: 100%; background: #f8fafc; display: flex; align-items: center; justify-content: center; color: #e2e8f0;">
+                        🏥
+                    </div>
+                    {% endif %}
+                </div>
+                <div style="padding: 3rem; flex-grow: 1;">
+                    <h3
+                        style="color: #1e3a8a; font-size: 2rem; margin-bottom: 2.5rem; font-weight: 900; border-bottom: 5px solid #f0f7ff; padding-bottom: 1.5rem;">
+                        {{ branch.name|upper }}
+                    </h3>
+                    <div style="margin-bottom: 2rem;">
+                        <p
+                            style="font-size: 1rem; color: #94a3b8; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 1rem;">
+                            Direct Line</p>
+                        <a href="tel:{{ branch.phone }}"
+                            style="color: #2563eb; text-decoration: none; font-weight: 900; font-size: 1.4rem; background: #eff6ff; padding: 15px 25px; border-radius: 20px; display: inline-block;">
+                            {{ branch.phone }}
+                        </a>
+                    </div>
+                    <div>
+                        <p
+                            style="font-size: 1rem; color: #94a3b8; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 1rem;">
+                            Address
+                        </p>
+                        <p style="color: #475569; margin: 0; font-size: 1.25rem; font-weight: 600; line-height: 1.6;">
+                            {{ branch.location }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+</section>
+{% endif %}
+
+<!-- Gallery Section -->
+<section class="gallery-section" style="padding: 8rem 0; background: #f8fafc;">
+    <div class="container">
+        <h2 style="text-align: center; font-size: 3.5rem; margin-bottom: 5rem; color: #1e3a8a; font-weight: 900;">
+            Gallery</h2>
+        {% if latest_gallery_images %}
+        <div class="grid grid-3">
+            {% for image in latest_gallery_images %}
+            <div class="card"
+                style="padding: 0; overflow: hidden; height: 100%; border: none; border-radius: 2.5rem; box-shadow: 0 20px 40px rgba(0,0,0,0.08);">
+                <div style="width: 100%; height: 350px; overflow: hidden;">
+                    <img src="{{ image.image.url }}" alt="{{ image.caption|default:'Campus Life' }}"
+                        style="width: 100%; height: 100%; object-fit: cover;">
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        <div style="text-align: center; margin-top: 4rem;">
+            <a href="{% url 'gallery' %}" class="btn btn-outline"
+                style="padding: 1rem 3rem; font-size: 1.1rem; border-radius: 50px; font-weight: 700; border-width: 2px;">
+                See More &rarr;
+            </a>
+        </div>
+    </div>
+</section>
+{% endblock %}

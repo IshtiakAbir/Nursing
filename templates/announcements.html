@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+
+{% block title %}Announcements - Premier Medical And Technical Institute{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 style="color: #1e3a8a; margin-bottom: 2rem;">📢 Announcements</h1>
+
+    {% if announcements %}
+    {% for announcement in announcements %}
+    <div class="card">
+        <div style="display: flex; justify-content: between; align-items: start; margin-bottom: 1rem;">
+            <h2 style="color: #1e3a8a; flex: 1;">{{ announcement.title }}</h2>
+            {% if announcement.is_global %}
+            <span class="badge badge-info">Global</span>
+            {% else %}
+            <span class="badge badge-warning">{{ announcement.batch.name }}</span>
+            {% endif %}
+        </div>
+
+        <p style="color: #64748b; font-size: 0.875rem; margin-bottom: 1rem;">
+            📅 {{ announcement.created_at|date:"F d, Y - h:i A" }}
+        </p>
+
+        <div style="line-height: 1.8;">
+            {{ announcement.content|linebreaks }}
+        </div>
+    </div>
+    {% endfor %}
+    {% else %}
+    <div class="card" style="text-align: center; padding: 3rem;">
+        <div style="font-size: 4rem; margin-bottom: 1rem;">📭</div>
+        <h3 style="color: #64748b;">No announcements yet</h3>
+        <p style="color: #64748b;">Check back later for updates.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

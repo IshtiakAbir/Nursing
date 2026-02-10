@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ module.title }} - Premier Medical And Technical Institute{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div style="margin-bottom: 2rem;">
+        <a href="{% url 'course_detail' module.course.id %}" style="color: #3b82f6; text-decoration: none;">← Back to
+            Course</a>
+    </div>
+
+    <div class="card" style="background: linear-gradient(135deg, #1e3a8a, #3b82f6); color: white; margin-bottom: 2rem;">
+        <h1 style="margin-bottom: 0.5rem; color: white;">Module {{ module.order }}: {{ module.title }}</h1>
+        <p style="opacity: 0.9;">{{ module.course.title }}</p>
+    </div>
+
+    <div class="grid grid-2">
+        <!-- Module Content -->
+        <div>
+            <div class="card">
+                <h2 style="color: #1e3a8a; margin-bottom: 1rem;">Module Description</h2>
+                <p style="margin-bottom: 2rem;">{{ module.description }}</p>
+
+                <h3 style="color: #1e3a8a; margin-bottom: 1rem;">Content</h3>
+                <div style="line-height: 1.8; color: #1e293b;">
+                    {{ module.content|linebreaks }}
+                </div>
+
+                {% if module.video_url %}
+                <div style="margin-top: 2rem;">
+                    <h3 style="color: #1e3a8a; margin-bottom: 1rem;">Video Lecture</h3>
+                    <div
+                        style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 0.5rem;">
+                        <iframe src="{{ module.video_url }}"
+                            style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none;"
+                            allowfullscreen></iframe>
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if resources %}
+                <div style="margin-top: 2rem; border-top: 1px solid #e2e8f0; padding-top: 2rem;">
+                    <h3 style="color: #1e3a8a; margin-bottom: 1rem;">Resources</h3>
+                    <div style="display: grid; gap: 1rem;">
+                        {% for resource in resources %}
+                        <div
+                            style="display: flex; align-items: center; justify-content: space-between; padding: 1rem; background: #f8fafc; border-radius: 0.5rem; border: 1px solid #e2e8f0;">
+                            <div style="display: flex; align-items: center; gap: 1rem;">
+                                <div style="font-size: 1.5rem;">
+                                    {% if resource.resource_type == 'PDF' %}📄{% elif resource.resource_type == 'DOC'
+                                    %}📝{% elif resource.resource_type == 'PPT' %}📊{% else %}📁{% endif %}
+                                </div>
+                                <div>
+                                    <h4 style="margin: 0; color: #334155; font-size: 1rem;">{{ resource.title }}</h4>
+                                    <p style="margin: 0; font-size: 0.875rem; color: #64748b;">{{ resource.get_file_size
+                                        }} MB</p>
+                                </div>
+                            </div>
+                            <a href="{% url 'download_resource' resource.id %}" class="btn btn-outline"
+                                style="font-size: 0.875rem; padding: 0.5rem 1rem;">Download</a>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+
+            </div>
+        </div>
+
+        <!-- Module Progress -->
+        <div>
+            <div class="card">
+                <h3 style="color: #1e3a8a; margin-bottom: 1rem;">Status</h3>
+                {% if module.admin_completed %}
+                <div style="text-align: center; padding: 2rem;">
+                    <div style="font-size: 4rem; margin-bottom: 1rem;">✓</div>
+                    <h2 style="color: #10b981; margin-bottom: 0.5rem;">Completed!</h2>
+                    <p style="color: #64748b;">This module has been marked as complete by the instructor.</p>
+                </div>
+                {% else %}
+                <div style="text-align: center; padding: 2rem;">
+                    <div style="font-size: 4rem; margin-bottom: 1rem;">📖</div>
+                    <h3 style="color: #1e3a8a; margin-bottom: 1rem;">In Progress</h3>
+                    <p style="color: #64748b; margin-bottom: 2rem;">Work through the content at your own pace.</p>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Module Info -->
+            <div class="card">
+                <h3 style="color: #1e3a8a; margin-bottom: 1rem;">Module Information</h3>
+                <p><strong>Course:</strong> {{ module.course.title }}</p>
+                <p><strong>Module Number:</strong> {{ module.order }}</p>
+                <p><strong>Last Updated:</strong> {{ module.updated_at|date:"F d, Y" }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
