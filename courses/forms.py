@@ -4,6 +4,9 @@ from django.contrib.auth.forms import UserCreationForm
 from .models import StudentProfile, Batch
 
 
+##jhkjhjlhl
+
+
 class StudentRegistrationForm(UserCreationForm):
     """Student registration form"""
     first_name = forms.CharField(

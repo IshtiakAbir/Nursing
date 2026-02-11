@@ -3,38 +3,24 @@
 {% block title %}{{ course.name }} - Premier Medical And Technical Institute{% endblock %}
 
 {% block content %}
-<!-- Course Header Section - Edge-to-Edge -->
-<section class="course-header"
-    style="background: linear-gradient(135deg, #1e3a8a, #3b82f6); color: white; padding: 6rem 0; margin-top: -3rem; width: 100%;">
+<!-- Modern Course Header -->
+<section class="course-page-header"
+    style="background: linear-gradient(135deg, #1e3a8a, #3b82f6); padding: 8rem 0 12rem; margin-top: -3rem;">
     <div class="container">
-        <div style="max-width: 900px;">
-            <h1
-                style="font-size: 3.5rem; font-weight: 900; margin-bottom: 2rem; line-height: 1.1; text-shadow: 0 4px 6px rgba(0,0,0,0.2); color: white;">
-                {{ course.name }}
-            </h1>
-            <div style="display: flex; gap: 1.5rem; align-items: center; flex-wrap: wrap;">
-                <div
-                    style="background: rgba(255,255,255,0.15); padding: 10px 25px; border-radius: 50px; font-size: 1.1rem; font-weight: 700; display: flex; align-items: center; gap: 10px; backdrop-filter: blur(5px); border: 1px solid rgba(255,255,255,0.2);">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="10"></circle>
-                        <polyline points="12 6 12 12 16 14"></polyline>
-                    </svg>
-                    Course Duration: {{ course.duration }}
-                </div>
-            </div>
-        </div>
+        <h1
+            style="font-size: 3.5rem; font-weight: 900; color: white; margin: 0; line-height: 1.1; max-width: 800px; text-shadow: 0 10px 20px rgba(0,0,0,0.1);">
+            {{ course.name }}
+        </h1>
     </div>
 </section>
 
-<!-- Course Overview Section -->
+<!-- Course Overview & Thumbnail Section -->
 <section style="padding: 5rem 0; background: #f8fafc;">
     <div class="container">
-        <div style="max-width: 1000px; margin: 0 auto;">
-            <div
-                style="background: white; padding: 4rem; border-radius: 2.5rem; box-shadow: 0 20px 40px rgba(0,0,0,0.05); border: 1px solid rgba(30, 58, 138, 0.05);">
-                <h2
-                    style="color: #1e3a8a; font-size: 2.25rem; font-weight: 800; margin-bottom: 2rem; display: flex; align-items: center; gap: 15px;">
+        <div class="course-main-layout">
+            <!-- Left Side: Description -->
+            <div class="course-description-card">
+                <h2 class="section-title">
                     <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none"
                         stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
                         style="color: #3b82f6;">
@@ -43,13 +29,197 @@
                     </svg>
                     Course Overview
                 </h2>
-                <div style="color: #475569; font-size: 1.3rem; line-height: 1.8; font-weight: 500;">
+                <div class="description-content">
                     {{ course.description|linebreaks }}
+                </div>
+            </div>
+
+            <!-- Right Side: Sidebar -->
+            <div class="course-sidebar">
+                <div class="sidebar-card">
+                    {% if course.thumbnail %}
+                    <div class="thumbnail-container">
+                        <img src="{{ course.thumbnail.url }}" alt="{{ course.name }}" class="sidebar-image">
+                    </div>
+                    {% else %}
+                    <div class="thumbnail-placeholder">
+                        <span>📖</span>
+                    </div>
+                    {% endif %}
+
+                    <div class="sidebar-info">
+                        <div class="info-item">
+                            <span class="info-label">Duration</span>
+                            <span class="info-value">{{ course.duration }}</span>
+                        </div>
+
+                        {% if not is_enrolled %}
+                        <div class="action-area">
+                            {% if not user.is_authenticated %}
+                            <a href="{% url 'register' %}" class="btn btn-primary-solid enroll-btn">Get Started</a>
+                            {% else %}
+                            <a href="{% url 'contact' %}" class="btn btn-primary-solid enroll-btn">Contact for
+                                Enrollment</a>
+                            {% endif %}
+                        </div>
+                        {% else %}
+                        <div class="status-badge-area">
+                            <span class="enrollment-status">✓ Enrolled</span>
+                        </div>
+                        {% endif %}
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </section>
+
+<style>
+    .course-main-layout {
+        display: flex;
+        gap: 4rem;
+        align-items: flex-start;
+        margin-top: -6rem;
+        /* Overlap with header */
+    }
+
+    .course-description-card {
+        flex: 1;
+        background: white;
+        padding: 4rem;
+        border-radius: 2.5rem;
+        box-shadow: 0 30px 60px rgba(0, 0, 0, 0.08);
+        border: 1px solid rgba(30, 58, 138, 0.05);
+    }
+
+    .section-title {
+        color: #1e3a8a;
+        font-size: 2.25rem;
+        font-weight: 800;
+        margin-bottom: 2rem;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .description-content {
+        color: #475569;
+        font-size: 1.25rem;
+        line-height: 1.8;
+        font-weight: 500;
+    }
+
+    .course-sidebar {
+        flex: 0 0 400px;
+        position: sticky;
+        top: 100px;
+        z-index: 10;
+    }
+
+    .sidebar-card {
+        background: white;
+        border-radius: 3rem;
+        box-shadow: 0 40px 80px rgba(0, 0, 0, 0.12);
+        overflow: hidden;
+        border: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .thumbnail-container {
+        width: 100%;
+        background: #f8fafc;
+    }
+
+    .sidebar-image {
+        width: 100%;
+        height: auto;
+        display: block;
+    }
+
+    .sidebar-info {
+        padding: 2.5rem;
+    }
+
+    .info-item {
+        display: flex;
+        flex-direction: column;
+        margin-bottom: 2rem;
+        padding-bottom: 1.5rem;
+        border-bottom: 1px solid #f1f5f9;
+    }
+
+    .info-label {
+        font-size: 0.9rem;
+        color: #94a3b8;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 0.5rem;
+    }
+
+    .info-value {
+        font-size: 1.4rem;
+        color: #1e3a8a;
+        font-weight: 800;
+    }
+
+    .enroll-btn {
+        width: 100%;
+        padding: 1.25rem;
+        border-radius: 1.5rem;
+        font-size: 1.1rem;
+        font-weight: 800;
+        box-shadow: 0 10px 20px rgba(16, 185, 129, 0.2);
+        display: block;
+        text-align: center;
+        text-decoration: none;
+    }
+
+    .enrollment-status {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        background: #ecfdf5;
+        color: #10b981;
+        padding: 1.25rem;
+        border-radius: 1.5rem;
+        font-weight: 800;
+        font-size: 1.1rem;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 1100px) {
+        .course-page-header {
+            padding-bottom: 8rem;
+        }
+
+        .course-main-layout {
+            flex-direction: column-reverse;
+            /* Put image on top for mobile */
+            margin-top: -4rem;
+            gap: 2rem;
+        }
+
+        .course-sidebar {
+            flex: none;
+            width: 100%;
+            position: relative;
+            top: 0;
+        }
+
+
+
+        .course-description-card {
+            padding: 2.5rem;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .course-header h1 {
+            font-size: 2.5rem !important;
+        }
+    }
+</style>
 
 <!-- Course Content Section (For Enrolled Students) -->
 {% if is_enrolled %}

@@ -626,6 +626,27 @@ h6 {
         max-width: 100%;
         padding: 0 var(--spacing-sm);
     }
+
+    /* Added Responsive Overrides */
+    h1 {
+        font-size: 2rem !important;
+    }
+
+    h2 {
+        font-size: 1.75rem !important;
+    }
+
+    h3 {
+        font-size: 1.5rem !important;
+    }
+
+    section {
+        padding: 3rem 0 !important;
+    }
+
+    .container {
+        padding: 0 var(--spacing-md) !important;
+    }
 }
 
 @media (max-width: 580px) {
