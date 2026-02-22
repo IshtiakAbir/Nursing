@@ -164,19 +164,31 @@ CSRF_COOKIE_SECURE = config('CSRF_COOKIE_SECURE', default=False, cast=bool)
 
 
 # ─── Firebase Admin SDK ────────────────────────────────────────────────────────
-FIREBASE_PROJECT_ID = config('FIREBASE_PROJECT_ID', default='')
-FIREBASE_SERVICE_ACCOUNT_KEY = config('FIREBASE_SERVICE_ACCOUNT_KEY', default='firebase-service-account.json')
+# Use the absolute path directly to avoid any "File Not Found" confusion
+FILE_PATH = "C:/xxampp/htdocs/Nursing/firebase-service-account.json"
 
-_firebase_key_path = BASE_DIR / FIREBASE_SERVICE_ACCOUNT_KEY
 if not firebase_admin._apps:
-    if _firebase_key_path.exists():
-        _cred = credentials.Certificate(str(_firebase_key_path))
-        firebase_admin.initialize_app(_cred)
-    else:
-        # Initialise without credentials (token verification will fail gracefully;
-        # admin panel still works via Django auth).
-        try:
-            firebase_admin.initialize_app()
-        except Exception:
-            pass
+    try:
+        if os.path.exists(FILE_PATH):
+            cred = credentials.Certificate(FILE_PATH)
+            firebase_admin.initialize_app(cred, {
+                'projectId': 'premier-medical-institute',
+            })
+            # This line fixes the "Default Credentials" (ADC) error
+            os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = FILE_PATH
+            print("✅ Firebase initialized successfully with absolute path!")
+        else:
+            # Fallback to current directory check if path above is wrong
+            _alt_path = BASE_DIR / "firebase-service-account.json"
+            if _alt_path.exists():
+                cred = credentials.Certificate(str(_alt_path))
+                firebase_admin.initialize_app(cred, {
+                    'projectId': 'premier-medical-institute',
+                })
+                os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = str(_alt_path)
+                print("✅ Firebase initialized successfully with fallback path!")
+            else:
+                print(f"❌ ERROR: Firebase Key file not found at {FILE_PATH}")
+    except Exception as e:
+        print(f"🔥 Firebase Initialization Failed: {e}")
 
