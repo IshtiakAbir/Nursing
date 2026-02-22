@@ -23,3 +23,8 @@ media/
 # OS / Editor
 .DS_Store
 Thumbs.db
+
+# Firebase private key – NEVER commit this!
+firebase-service-account.json
+*-service-account.json
+

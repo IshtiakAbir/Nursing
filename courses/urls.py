@@ -12,6 +12,10 @@ urlpatterns = [
     path('login/', views.student_login, name='login'),
     path('register/', views.student_register, name='register'),
     path('logout/', views.student_logout, name='logout'),
+
+    # Firebase Authentication API
+    path('auth/firebase-login/', views.firebase_token_login, name='firebase_login'),
+    path('auth/firebase-register/', views.firebase_register_complete, name='firebase_register'),
     
     # Student dashboard
     path('dashboard/', views.dashboard, name='dashboard'),

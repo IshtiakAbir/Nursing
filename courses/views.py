@@ -3,9 +3,12 @@ from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib import messages
-from django.http import HttpResponse, FileResponse, Http404
+from django.http import HttpResponse, FileResponse, Http404, JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
 from django.utils import timezone
 from django.db.models import Q, Count, Avg
+from django.contrib.auth.models import User
 from io import BytesIO
 from reportlab.lib.pagesizes import letter, A4
 from reportlab.lib.units import inch
@@ -15,6 +18,14 @@ from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, 
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.enums import TA_CENTER, TA_LEFT
 from datetime import datetime
+import json
+
+try:
+    import firebase_admin
+    from firebase_admin import auth as firebase_auth
+    FIREBASE_AVAILABLE = bool(firebase_admin._apps)
+except ImportError:
+    FIREBASE_AVAILABLE = False
 
 from .models import (
     StudentProfile, Course, Module, ModuleCompletion,
@@ -80,10 +91,11 @@ def student_login(request):
 
 
 def student_register(request):
-    """Student registration view"""
+    """Student registration view (now Firebase-powered on the frontend)"""
     if request.user.is_authenticated:
         return redirect('dashboard')
-    
+
+    # The Django form is kept as a fallback; the primary flow is Firebase-based.
     if request.method == 'POST':
         form = StudentRegistrationForm(request.POST, request.FILES)
         if form.is_valid():
@@ -92,8 +104,9 @@ def student_register(request):
             return redirect('login')
     else:
         form = StudentRegistrationForm()
-    
-    return render(request, 'register.html', {'form': form})
+
+    batches = Batch.objects.filter(is_active=True)
+    return render(request, 'register.html', {'form': form, 'batches': batches})
 
 
 def student_logout(request):
@@ -101,6 +114,197 @@ def student_logout(request):
     logout(request)
     messages.info(request, 'You have been logged out successfully.')
     return redirect('home')
+
+
+# ─── Firebase Authentication Views ────────────────────────────────────────────
+
+@csrf_exempt
+@require_POST
+def firebase_token_login(request):
+    """
+    POST /auth/firebase-login/
+    Body (JSON): { "idToken": "<Firebase ID token>" }
+
+    Verifies the Firebase token server-side, finds or creates a matching
+    Django User, then establishes a Django session so the rest of the app
+    works normally.
+    """
+    if not FIREBASE_AVAILABLE:
+        return JsonResponse({'success': False, 'error': 'Firebase is not configured on this server.'}, status=503)
+
+    try:
+        data = json.loads(request.body)
+        id_token = data.get('idToken', '')
+    except (json.JSONDecodeError, AttributeError):
+        return JsonResponse({'success': False, 'error': 'Invalid request body.'}, status=400)
+
+    if not id_token:
+        return JsonResponse({'success': False, 'error': 'idToken is required.'}, status=400)
+
+    try:
+        decoded = firebase_auth.verify_id_token(id_token)
+    except firebase_auth.ExpiredIdTokenError:
+        return JsonResponse({'success': False, 'error': 'Token has expired. Please sign in again.'}, status=401)
+    except firebase_auth.InvalidIdTokenError:
+        return JsonResponse({'success': False, 'error': 'Invalid token.'}, status=401)
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': f'Token verification failed: {str(e)}'}, status=401)
+
+    firebase_uid  = decoded.get('uid')
+    email         = decoded.get('email', '').lower().strip()
+    display_name  = decoded.get('name', '')
+    photo_url     = decoded.get('picture', '')
+
+    # ── Find an existing Django user by Firebase UID stored in username, or by email ──
+    user = None
+
+    # Convention: we store Firebase users with username = 'fb_<uid>'
+    firebase_username = f'fb_{firebase_uid}'
+    try:
+        user = User.objects.get(username=firebase_username)
+    except User.DoesNotExist:
+        # Try matching by email (for existing non-Firebase registrations)
+        if email:
+            try:
+                user = User.objects.get(email=email)
+            except User.DoesNotExist:
+                pass
+
+    if user is None:
+        # First sign-in with Firebase for this identity — tell the frontend
+        # it needs to complete the registration profile form.
+        return JsonResponse({
+            'success': False,
+            'requiresRegistration': True,
+            'uid': firebase_uid,
+            'email': email,
+            'displayName': display_name,
+            'photoUrl': photo_url,
+        }, status=200)
+
+    # ── User exists — check student profile and verification ──
+    if not hasattr(user, 'student_profile'):
+        return JsonResponse({'success': False, 'error': 'This account is not a student account.'}, status=403)
+
+    if not user.student_profile.is_verified:
+        return JsonResponse({
+            'success': False,
+            'error': 'Your account is pending verification by an administrator. Please wait for approval.',
+            'pendingVerification': True,
+        }, status=403)
+
+    # Ensure username is updated to the Firebase convention
+    if user.username != firebase_username:
+        user.username = firebase_username
+        user.save(update_fields=['username'])
+
+    login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+    return JsonResponse({'success': True, 'redirect': '/dashboard/'})
+
+
+@csrf_exempt
+@require_POST
+def firebase_register_complete(request):
+    """
+    POST /auth/firebase-register/
+    Body (JSON): {
+        "idToken": "<Firebase ID token>",
+        "studentId": "REG123",
+        "phone": "017XXXXXXXX",
+        "batchId": 1,
+        "dateOfBirth": "YYYY-MM-DD",   # optional
+        "address": "...",              # optional
+    }
+
+    Verifies the token, creates the Django User + StudentProfile, and
+    redirects the student to login (pending admin verification).
+    """
+    if not FIREBASE_AVAILABLE:
+        return JsonResponse({'success': False, 'error': 'Firebase is not configured on this server.'}, status=503)
+
+    try:
+        data = json.loads(request.body)
+    except (json.JSONDecodeError, AttributeError):
+        return JsonResponse({'success': False, 'error': 'Invalid request body.'}, status=400)
+
+    id_token = data.get('idToken', '')
+    if not id_token:
+        return JsonResponse({'success': False, 'error': 'idToken is required.'}, status=400)
+
+    try:
+        decoded = firebase_auth.verify_id_token(id_token)
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': f'Token verification failed: {str(e)}'}, status=401)
+
+    firebase_uid = decoded.get('uid')
+    email        = decoded.get('email', '').lower().strip()
+    display_name = decoded.get('name', '')
+
+    # Derive first/last name from display_name
+    name_parts = display_name.split(' ', 1) if display_name else ['', '']
+    first_name = name_parts[0]
+    last_name  = name_parts[1] if len(name_parts) > 1 else ''
+
+    firebase_username = f'fb_{firebase_uid}'
+
+    # Guard: don't create duplicate
+    if User.objects.filter(username=firebase_username).exists():
+        return JsonResponse({'success': False, 'error': 'This Firebase account is already registered.'}, status=409)
+    if email and User.objects.filter(email__iexact=email).exists():
+        return JsonResponse({'success': False, 'error': 'An account with this email already exists.'}, status=409)
+
+    # Validate required fields
+    student_id = data.get('studentId', '').strip()
+    phone      = data.get('phone', '').strip()
+    batch_id   = data.get('batchId')
+
+    errors = {}
+    if not student_id:
+        errors['studentId'] = 'Registration number is required.'
+    elif StudentProfile.objects.filter(student_id=student_id).exists():
+        errors['studentId'] = 'This registration number is already in use.'
+    if not phone:
+        errors['phone'] = 'Phone number is required.'
+    if not batch_id:
+        errors['batchId'] = 'Please select a batch.'
+
+    try:
+        batch = Batch.objects.get(id=batch_id, is_active=True)
+    except (Batch.DoesNotExist, TypeError, ValueError):
+        errors['batchId'] = 'Selected batch is invalid.'
+        batch = None
+
+    if errors:
+        return JsonResponse({'success': False, 'errors': errors}, status=422)
+
+    # Create the Django user (no usable password — auth is via Firebase)
+    user = User.objects.create_user(
+        username=firebase_username,
+        email=email,
+        first_name=first_name,
+        last_name=last_name,
+    )
+    user.set_unusable_password()
+    user.save()
+
+    # Parse optional fields
+    dob = data.get('dateOfBirth') or None
+    address = data.get('address', '')
+
+    StudentProfile.objects.create(
+        user=user,
+        student_id=student_id,
+        phone=phone,
+        batch=batch,
+        date_of_birth=dob,
+        address=address,
+        is_verified=False,  # Admin must verify
+    )
+
+    return JsonResponse({
+        'success': True,
+        'message': 'Registration successful! Your account is pending admin verification.',
+    })
 
 
 @login_required
